@@ -6,6 +6,7 @@ The data from each endpoint is supplied to the onComplete handler for different 
 
 An example usage, where a file is sent to two endpoints (note the new endpoint array) and the JSON responses are used to change two different divs in my html:
 
+```javascript
                     var uploader = new qq.FineUploader({
                       // Pass the HTML element here
                       element: document.getElementById('uploader'),
@@ -44,5 +45,6 @@ An example usage, where a file is sent to two endpoints (note the new endpoint a
                       }, 
                       debug: true
                     });
+```
 
 # Based on Fine Uploader 3.0 (Released November 16) #
