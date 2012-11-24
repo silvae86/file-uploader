@@ -53,48 +53,63 @@ qq.extend(qq.UploadHandlerForm.prototype, {
             qq(iframe).remove();
         }
     },
-    _upload: function(id, params){
-        this._options.onUpload(id, this.getName(id), false);
-        var input = this._inputs[id];
-
-        if (!input){
-            throw new Error('file with passed id was not added, or already uploaded or cancelled');
+upload: function(id, params){
+        
+        var array_endpoint = new Array();
+        
+        if(!(this._options.endpoint instanceof Array))
+        {
+            array_endpoint.push(this._options.endpoint);
         }
+        else
+        {
+            array_endpoint = this._options.endpoint
+        }
+        
+        for(i = 0; i<array_endpoint.length; i++)
+        {
+            this._options.onUpload(id, this.getName(id), false);
+            var input = this._inputs[id];
 
-        var fileName = this.getName(id);
-        params[this._options.inputName] = fileName;
-
-        var iframe = this._createIframe(id);
-        var form = this._createForm(iframe, params);
-        form.appendChild(input);
-
-        var self = this;
-        this._attachLoadEvent(iframe, function(){
-            self.log('iframe loaded');
-
-            var response = self._getIframeContentJSON(iframe);
-
-            // timeout added to fix busy state in FF3.6
-            setTimeout(function(){
-                self._detach_load_events[id]();
-                delete self._detach_load_events[id];
-                qq(iframe).remove();
-            }, 1);
-
-            if (!response.success) {
-                if (self._options.onAutoRetry(id, fileName, response)) {
-                    return;
-                }
+            if (!input){
+                throw new Error('file with passed id was not added, or already uploaded or cancelled');
             }
-            self._options.onComplete(id, fileName, response);
-            self._dequeue(id);
-        });
 
-        this.log('Sending upload request for ' + id);
-        form.submit();
-        qq(form).remove();
+            var fileName = this.getName(id);
+            params[this._options.inputName] = fileName;
 
-        return id;
+            var iframe = this._createIframe(id+"_"+i);
+            var form = this._createForm(iframe, params, array_endpoint[i]);
+            form.appendChild(input);
+
+            var self = this;
+            this._attachLoadEvent(iframe, function(){
+                self.log('iframe loaded');
+
+                var response = self._getIframeContentJSON(iframe);
+
+                // timeout added to fix busy state in FF3.6
+                setTimeout(function(){
+                    self._detach_load_events[id]();
+                    delete self._detach_load_events[id];
+                    qq(iframe).remove();
+                }, 1);
+
+                if (!response.success) {
+                    if (self._options.onAutoRetry(id, fileName, response)) {
+                        return;
+                    }
+                }
+                self._options.onComplete(id, fileName, response);
+                self._dequeue(id);
+            });
+
+            this.log('Sending upload request for ' + id);
+            form.submit();
+            qq(form).remove();
+
+            return id;
+        }
     },
     _attachLoadEvent: function(iframe, callback){
         var self = this;
